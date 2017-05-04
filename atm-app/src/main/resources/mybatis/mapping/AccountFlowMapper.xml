@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dayuanit.dao.AccountFlowDao">
+
+	<resultMap id="accountflowResultMap" type="accountflow">
+		<id property="id" column="id" />
+		<result property="userId" column="user_id"/>
+		<result property="cardNum" column="card_num"/>
+		<result property="descMsg" column="desc_msg"/>
+		<result property="createTime" column="create_time"/>
+		<result property="amount" column="amount"/>
+		<result property="flowId" column="flow_id"/>
+	</resultMap>
+	
+	<insert id="addAccountFlow" parameterType="accountflow" useGeneratedKeys="true" keyProperty="id">
+		insert into dy_account_flow (user_id, card_num, desc_msg, create_time, amount, flow_id ) 
+		values(#{userId},#{cardNum},#{descMsg}, now(),#{amount},#{flowId});
+	</insert>
+	
+	<select id="countFlow" parameterType="HashMap" resultType="int">
+		select count(id)  from dy_account_flow 
+		 <where>
+	     <if test="cardNum !=null">
+	         card_num = #{cardNum}
+	    </if>
+	     <if test="startTimeObj !=null">
+         	 <![CDATA[ and create_time >= #{startTimeObj} ]]>
+         </if>
+	    <if test="endTimeObj !=null" >
+	         <![CDATA[ and create_time <= #{endTimeObj}  ]]>
+	    </if>
+	 </where>
+	</select>
+	
+	<select id="listAccountFlow" parameterType="HashMap" resultMap="accountflowResultMap">
+			select id,user_id, card_num,desc_msg, create_time, amount,flow_id from dy_account_flow 
+	 <where>
+	     <if test="userId !=null">
+	         user_id = #{userId}
+	    </if>
+	     <if test="startTimeObj !=null">
+         	 <![CDATA[ and create_time >= #{startTimeObj} ]]>
+         </if>
+	    <if test="endTimeObj !=null" >
+	         <![CDATA[ and create_time <= #{endTimeObj}  ]]>
+	    </if>
+	 </where>
+	    order by id desc limit #{startNum}, #{preNum}	
+	</select>
+
+
+<!-->=================================多表联查================================<-->	
+	<resultMap id="accountflowResultMap2" type="accountflow2">
+		<id property="id" column="id" />
+		<result property="descMsg" column="desc_msg"/>
+		<result property="createTime" column="create_time"/>
+		<result property="amount" column="amount"/>
+		<result property="flowDesc" column="flow_desc"/>
+	</resultMap>
+
+	<select id="listAccountFlow2" parameterType="HashMap" resultMap="accountflowResultMap2">
+	SELECT af.id,af.desc_msg,af.amount,af.create_time, ft.flow_desc FROM  dy_account_flow af ,dy_flow_type ft 
+	WHERE af.flow_id= ft.id	     
+	 <if test="userId !=null">
+	      and af.user_id = #{userId}
+	  </if>
+	  <if test="startTimeObj !=null">
+         	 <![CDATA[ and af.create_time >= #{startTimeObj} ]]>
+         </if>
+	 <if test="endTimeObj !=null" >
+	         <![CDATA[ and af.create_time <= #{endTimeObj}  ]]>
+	 </if>	 
+	    order by af.id desc limit #{startNum}, #{preNum}	
+	</select>
+
+
+</mapper>
